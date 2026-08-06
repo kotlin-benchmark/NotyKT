@@ -16,7 +16,7 @@ versionName = "3.0.0"
 javaVersion = "17"
 
 # AndroidX
-coreKtx = "1.18.0"
+coreKtx = "1.19.0"
 appcompat = "1.7.1"
 legacySupport = "1.0.0"
 constraintlayout = "2.2.1"
