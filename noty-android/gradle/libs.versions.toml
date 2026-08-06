@@ -37,7 +37,7 @@ composeNav = "2.9.7"
 hiltComposeNav = "1.3.0"
 
 # Dagger Hilt
-daggerHilt = "2.59.2"
+daggerHilt = "2.60.1"
 jetpackHilt = "1.3.0"
 
 # Retrofit and OkHttp
