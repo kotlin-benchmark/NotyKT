@@ -185,9 +185,9 @@ class NotesController @Inject constructor(private val noteDao: NoteDao) {
             return notes
         }
         require(titleFilter.length <= 200) { "Search expression is too long" }
+        val matcher = Regex(titleFilter)
         //CWE-1333
         //SINK
-        val matcher = Regex(titleFilter)
         return notes.filter { matcher.containsMatchIn(it.title) }
     }
 

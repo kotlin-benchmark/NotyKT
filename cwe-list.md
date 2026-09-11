@@ -27,10 +27,10 @@ step 2:
 [NotesController.kt:176](E:/DefensePoint/benchmarks/kotlin-benchmark/NotyKT/noty-api/application/src/main/kotlin/dev/shreyaspatil/noty/api/controller/NotesController.kt#L176)
 
 step 3:
-[NotesController.kt:191](E:/DefensePoint/benchmarks/kotlin-benchmark/NotyKT/noty-api/application/src/main/kotlin/dev/shreyaspatil/noty/api/controller/NotesController.kt#L191)
+[NotesController.kt:188](E:/DefensePoint/benchmarks/kotlin-benchmark/NotyKT/noty-api/application/src/main/kotlin/dev/shreyaspatil/noty/api/controller/NotesController.kt#L188)
 
 Sink:
-[NotesController.kt:190](E:/DefensePoint/benchmarks/kotlin-benchmark/NotyKT/noty-api/application/src/main/kotlin/dev/shreyaspatil/noty/api/controller/NotesController.kt#L190)
+[NotesController.kt:191](E:/DefensePoint/benchmarks/kotlin-benchmark/NotyKT/noty-api/application/src/main/kotlin/dev/shreyaspatil/noty/api/controller/NotesController.kt#L191)
 
 CWE-89
 Example 1
