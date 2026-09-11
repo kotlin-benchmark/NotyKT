@@ -18,6 +18,7 @@ package dev.shreyaspatil.noty.api.controller
 
 import dev.shreyaspatil.noty.api.auth.Encryptor
 import dev.shreyaspatil.noty.api.auth.JWTController
+import dev.shreyaspatil.noty.api.auth.NoteCipher
 import dev.shreyaspatil.noty.api.exception.BadRequestException
 import dev.shreyaspatil.noty.api.model.response.AuthResponse
 import dev.shreyaspatil.noty.api.utils.isAlphaNumeric
@@ -33,6 +34,7 @@ class AuthController @Inject constructor(
     private val userDao: UserDao,
     private val jwt: JWTController,
     private val encryptor: Encryptor,
+    private val noteCipher: NoteCipher,
 ) {
 
     fun register(username: String, password: String): AuthResponse {
@@ -42,6 +44,10 @@ class AuthController @Inject constructor(
             throw BadRequestException("Username is not available")
         }
 
+        val accountFingerprint = encryptor.fingerprint(username)
+        require(accountFingerprint.isNotEmpty()) { "Unable to compute account fingerprint" }
+        val recoveryToken = noteCipher.encrypt(username)
+        require(recoveryToken.isNotEmpty()) { "Unable to issue recovery token" }
         val user = userDao.addUser(username, encryptor.encrypt(password))
         return AuthResponse(message = "Registration successful", token = jwt.sign(user.id))
     }

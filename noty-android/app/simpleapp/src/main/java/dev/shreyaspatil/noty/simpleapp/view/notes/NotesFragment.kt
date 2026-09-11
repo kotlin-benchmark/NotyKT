@@ -25,6 +25,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.MenuHost
@@ -245,6 +246,22 @@ class NotesFragment : BaseFragment<NotesFragmentBinding, NotesState, NotesViewMo
                     menuInflater: MenuInflater,
                 ) {
                     menuInflater.inflate(dev.shreyaspatil.noty.simpleapp.R.menu.main_menu, menu)
+
+                    val searchItem = menu.findItem(dev.shreyaspatil.noty.simpleapp.R.id.action_search)
+                    val searchView = searchItem.actionView as SearchView
+                    searchView.setOnQueryTextListener(
+                        object : SearchView.OnQueryTextListener {
+                            override fun onQueryTextSubmit(query: String?): Boolean {
+                                //CWE-89
+                                //SOURCE
+                                val searchTerm = query ?: ""
+                                viewModel.searchNotes(searchTerm)
+                                return true
+                            }
+
+                            override fun onQueryTextChange(newText: String?): Boolean = false
+                        },
+                    )
                 }
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

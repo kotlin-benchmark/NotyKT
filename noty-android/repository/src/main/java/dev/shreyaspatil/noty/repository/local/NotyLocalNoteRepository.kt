@@ -19,6 +19,7 @@ package dev.shreyaspatil.noty.repository.local
 import dev.shreyaspatil.noty.core.model.Note
 import dev.shreyaspatil.noty.core.repository.Either
 import dev.shreyaspatil.noty.core.repository.NotyNoteRepository
+import dev.shreyaspatil.noty.data.local.NotyDatabase
 import dev.shreyaspatil.noty.data.local.dao.NotesDao
 import dev.shreyaspatil.noty.data.local.entity.NoteEntity
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +36,7 @@ class NotyLocalNoteRepository
     @Inject
     constructor(
         private val notesDao: NotesDao,
+        private val database: NotyDatabase,
     ) : NotyNoteRepository {
         override fun getNoteById(noteId: String): Flow<Note> =
             notesDao
@@ -49,6 +51,33 @@ class NotyLocalNoteRepository
                     notes.map { Note(it.noteId, it.title, it.note, it.created, it.isPinned) }
                 }.transform { notes -> emit(Either.success(notes)) }
                 .catch { emit(Either.success(emptyList())) }
+
+        override suspend fun searchNotes(query: String): Either<List<Note>> =
+            runCatching {
+                if (query.contains("DROP")) {
+                    Either.error<List<Note>>("Invalid search term")
+                } else {
+                    val sql = "SELECT * FROM notes WHERE title LIKE '%" + query + "%'"
+                    //CWE-89
+                    //SINK
+                    val cursor = database.query(sql, arrayOf<Any?>())
+                    val matched = mutableListOf<Note>()
+                    cursor.use { row ->
+                        while (row.moveToNext()) {
+                            matched.add(
+                                Note(
+                                    row.getString(row.getColumnIndexOrThrow("noteId")),
+                                    row.getString(row.getColumnIndexOrThrow("title")),
+                                    row.getString(row.getColumnIndexOrThrow("note")),
+                                    row.getLong(row.getColumnIndexOrThrow("created")),
+                                    row.getInt(row.getColumnIndexOrThrow("isPinned")) == 1,
+                                ),
+                            )
+                        }
+                    }
+                    Either.success(matched.toList())
+                }
+            }.getOrDefault(Either.error<List<Note>>("Unable to search notes"))
 
         override suspend fun addNote(
             title: String,

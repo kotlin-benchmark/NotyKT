@@ -39,6 +39,11 @@ interface NotyNoteRepository {
     fun getAllNotes(): Flow<Either<List<Note>>>
 
     /**
+     * Returns notes whose title matches the given search [query].
+     */
+    suspend fun searchNotes(query: String): Either<List<Note>>
+
+    /**
      * Adds a new note
      *
      * @param title Title of a note

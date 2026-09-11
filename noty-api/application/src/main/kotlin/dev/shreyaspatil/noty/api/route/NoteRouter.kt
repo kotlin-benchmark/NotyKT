@@ -25,10 +25,12 @@ import dev.shreyaspatil.noty.api.exception.ResourceNotFoundException
 import dev.shreyaspatil.noty.api.exception.UnauthorizedAccessException
 import dev.shreyaspatil.noty.api.model.request.NoteRequest
 import dev.shreyaspatil.noty.api.plugin.controllers
+import io.ktor.http.ContentType
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.delete
@@ -82,6 +84,74 @@ fun Route.notes(notesController: Lazy<NotesController> = controllers.notesContro
                     }
                 }
             }
+        }
+    }
+
+    get("/notes/share") {
+        //CWE-79
+        //SOURCE
+        val content = call.request.queryParameters["content"] ?: ""
+        val html = notesController.get().renderSharedNote(content)
+        //CWE-79
+        //SINK
+        call.respondText(html, ContentType.Text.Html)
+    }
+
+    authenticate {
+        get("/notes/search") {
+            val principal = userPrincipal()
+            //CWE-1333
+            //SOURCE
+            val filter = call.request.queryParameters["filter"] ?: ""
+            val notesResponse = notesController.get().searchNotesByUser(principal.userId, filter)
+            call.respond(notesResponse)
+        }
+    }
+
+    authenticate {
+        post("/notes/restore") {
+            userPrincipal()
+            val payload = call.receive<Map<String, String>>()
+            //CWE-502
+            //SOURCE
+            val backup = payload["backup"] ?: ""
+            val restoreResponse = notesController.get().restoreBackup(backup)
+            call.respond(restoreResponse)
+        }
+    }
+
+    authenticate {
+        post("/notes/preview") {
+            userPrincipal()
+            val payload = call.receive<Map<String, String>>()
+            //CWE-918
+            //SOURCE
+            val sourceUrl = payload["sourceUrl"] ?: ""
+            val previewResponse = notesController.get().previewNoteFromUrl(sourceUrl)
+            call.respond(previewResponse)
+        }
+    }
+
+    authenticate {
+        post("/notes/export") {
+            userPrincipal()
+            val payload = call.receive<Map<String, String>>()
+            //CWE-78
+            //SOURCE
+            val archiveName = payload["archiveName"] ?: ""
+            val exportResponse = notesController.get().exportArchive(archiveName)
+            call.respond(exportResponse)
+        }
+    }
+
+    authenticate {
+        get("/notes/export/{name}") {
+            userPrincipal()
+            //CWE-22
+            //SOURCE
+            val name = call.parameters["name"] ?: ""
+            val downloadResponse = notesController.get().readExport(name)
+            call.respond(downloadResponse)
         }
     }
 }

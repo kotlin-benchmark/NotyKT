@@ -94,6 +94,15 @@ class NotesViewModel
                 }
         }
 
+        fun searchNotes(query: String) {
+            viewModelScope.launch {
+                notyNoteRepository
+                    .searchNotes(query)
+                    .onSuccess { notes -> setState { this.notes = notes } }
+                    .onFailure { message -> setState { error = message } }
+            }
+        }
+
         fun logout() {
             viewModelScope.launch {
                 sessionManager.saveToken(null)
