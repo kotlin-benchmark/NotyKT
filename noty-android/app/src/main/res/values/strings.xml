@@ -26,6 +26,7 @@
     <string name="menu_share_image">Share as Image</string>
     <string name="menu_logout">Logout</string>
     <string name="menu_about">About</string>
+    <string name="menu_search">Search</string>
 
     <!-- Text -->
     <string name="text_login">Login</string>

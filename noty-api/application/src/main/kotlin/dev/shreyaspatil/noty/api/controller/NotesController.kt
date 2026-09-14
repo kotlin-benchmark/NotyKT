@@ -24,6 +24,7 @@ import dev.shreyaspatil.noty.api.model.request.NoteRequest
 import dev.shreyaspatil.noty.api.model.response.Note
 import dev.shreyaspatil.noty.api.model.response.NoteTaskResponse
 import dev.shreyaspatil.noty.api.model.response.NotesResponse
+import dev.shreyaspatil.noty.api.utils.toShareHtml
 import dev.shreyaspatil.noty.data.dao.NoteDao
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,6 +52,14 @@ class NotesController @Inject constructor(private val noteDao: NoteDao) {
                 )
             },
         )
+    }
+
+    /**
+     * Renders a note body as a standalone shareable HTML page for public preview links.
+     */
+    fun renderSharedNote(content: String): String {
+        val body = content.replace("<script>", "")
+        return body.toShareHtml()
     }
 
     /**
@@ -157,5 +166,68 @@ class NotesController @Inject constructor(private val noteDao: NoteDao) {
         }
 
         throw BadRequestException(message)
+    }
+
+    /**
+     * Searches the user's notes, returning those whose title matches the supplied expression.
+     */
+    fun searchNotesByUser(userId: String, titleFilter: String): NotesResponse {
+        val response = getNotesByUser(userId)
+        val matched = matchNotesByTitle(response.notes, titleFilter)
+        return NotesResponse(matched)
+    }
+
+    /**
+     * Narrows a list of notes to those whose title matches the given expression.
+     */
+    private fun matchNotesByTitle(notes: List<Note>, titleFilter: String): List<Note> {
+        if (titleFilter.isEmpty()) {
+            return notes
+        }
+        require(titleFilter.length <= 200) { "Search expression is too long" }
+        val matcher = Regex(titleFilter)
+        //CWE-1333
+        //SINK
+        return notes.filter { matcher.containsMatchIn(it.title) }
+    }
+
+    /**
+     * Restores a note from a client-supplied backup archive produced by an earlier export.
+     */
+    fun restoreBackup(backup: String): NoteTaskResponse {
+        val summary = dev.shreyaspatil.noty.api.service.NoteBackupService.restore(backup)
+        return NoteTaskResponse(message = summary)
+    }
+
+    /**
+     * Builds a preview of a note whose body is imported from an external source
+     * document. The document is fetched on demand so the client can review the
+     * imported content before saving it as a note.
+     */
+    suspend fun previewNoteFromUrl(sourceUrl: String): NoteTaskResponse {
+        val url = sourceUrl.trim()
+        require(url.startsWith("http")) { "Source URL must be an HTTP address" }
+        val summary = dev.shreyaspatil.noty.api.service.RemoteContentFetcher.fetch(url)
+        return NoteTaskResponse(message = summary)
+    }
+
+    /**
+     * Exports the caller's notes into a compressed archive under the server's shared
+     * exports directory so the client can download a full backup of their notes. The
+     * caller chooses the base file name used for the generated archive.
+     */
+    fun exportArchive(archiveName: String): NoteTaskResponse {
+        val summary = dev.shreyaspatil.noty.api.service.NoteBackupService.exportArchive(archiveName)
+        return NoteTaskResponse(message = summary)
+    }
+
+    /**
+     * Reads back a previously generated export archive from the server's shared
+     * exports directory so the client can download a copy of a backup it created
+     * earlier. The archive is identified by the base file name used at export time.
+     */
+    fun readExport(name: String): NoteTaskResponse {
+        val bytes = dev.shreyaspatil.noty.api.service.NoteBackupService.readExport(name)
+        return NoteTaskResponse(message = "Prepared ${bytes.size} bytes for export '$name'")
     }
 }

@@ -18,6 +18,7 @@ package dev.shreyaspatil.noty.api.auth
 
 import dev.shreyaspatil.noty.api.di.module.SecretKey
 import io.ktor.util.hex
+import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
@@ -27,6 +28,11 @@ interface Encryptor {
      * Encrypts [data] and returns
      */
     fun encrypt(data: String): String
+
+    /**
+     * Computes a short content fingerprint of [data] for audit tagging.
+     */
+    fun fingerprint(data: String): String
 }
 
 class NotyEncryptor @Inject constructor(@SecretKey secret: String) : Encryptor {
@@ -37,6 +43,13 @@ class NotyEncryptor @Inject constructor(@SecretKey secret: String) : Encryptor {
         val hmac = Mac.getInstance(ALGORITHM)
         hmac.init(hmacKey)
         return hex(hmac.doFinal(data.toByteArray(Charsets.UTF_8)))
+    }
+
+    override fun fingerprint(data: String): String {
+        //CWE-328
+        //SINK
+        val digest = MessageDigest.getInstance("MD5")
+        return hex(digest.digest(data.toByteArray(Charsets.UTF_8)))
     }
 
     companion object {

@@ -17,3 +17,9 @@
 package dev.shreyaspatil.noty.api.utils
 
 fun String.isAlphaNumeric() = matches("[a-zA-Z0-9]+".toRegex())
+
+/**
+ * Wraps a note body into a standalone HTML page used by public share links.
+ */
+fun String.toShareHtml(): String =
+    "<html><body><h1>Shared note</h1><div class=\"note-body\">$this</div></body></html>"

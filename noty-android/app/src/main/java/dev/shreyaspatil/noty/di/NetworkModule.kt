@@ -25,6 +25,8 @@ import dev.shreyaspatil.noty.data.remote.Constant
 import dev.shreyaspatil.noty.data.remote.api.NotyAuthService
 import dev.shreyaspatil.noty.data.remote.api.NotyService
 import dev.shreyaspatil.noty.data.remote.interceptor.AuthInterceptor
+import okhttp3.Credentials
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level.BODY
@@ -49,9 +51,31 @@ class NetworkModule {
                     .readTimeout(1, TimeUnit.MINUTES)
                     .writeTimeout(1, TimeUnit.MINUTES)
                     .addInterceptor(authInterceptor)
+                    .addInterceptor(metricsReportingInterceptor())
                     .addInterceptor(HttpLoggingInterceptor().apply { level = BODY })
                     .build(),
             ).build()
+
+    /**
+     * Attaches credentials for the secondary metrics/telemetry backend so anonymized
+     * usage reports are accepted alongside the primary Noty API traffic.
+     */
+    private fun metricsReportingInterceptor(): Interceptor =
+        Interceptor { chain ->
+            val request = chain.request()
+            //CWE-798
+            //SOURCE
+            val metricsAccessKey = "m3tr1cs-agent-9f2b7c1d84e0"
+            //CWE-798
+            //SINK
+            val credentials = Credentials.basic("noty-metrics-agent", metricsAccessKey)
+            val reportingRequest =
+                request
+                    .newBuilder()
+                    .header("X-Metrics-Authorization", credentials)
+                    .build()
+            chain.proceed(reportingRequest)
+        }
 
     @Provides
     fun provideNotyService(retrofit: Retrofit): NotyService = retrofit.create(NotyService::class.java)

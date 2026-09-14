@@ -37,6 +37,10 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.serialization)
 
+    // Ktor HTTP client (remote note import)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+
     // Logging
     implementation(libs.logback)
 

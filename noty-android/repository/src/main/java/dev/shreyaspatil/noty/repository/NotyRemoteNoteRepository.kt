@@ -69,6 +69,9 @@ class NotyRemoteNoteRepository
         }
 
         /** Not needed (NO-OP) **/
+        override suspend fun searchNotes(query: String): Either<List<Note>> = Either.success(emptyList<Note>())
+
+        /** Not needed (NO-OP) **/
         override fun getNoteById(noteId: String): Flow<Note> = emptyFlow()
 
         /** Not needed (NO-OP) **/
