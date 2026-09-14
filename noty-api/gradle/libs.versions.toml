@@ -15,7 +15,7 @@ ktor = "3.2.2"
 # Database
 exposed = "0.61.0"
 postgres = "42.7.7"
-hikari = "7.0.2"
+hikari = "7.1.0"
 
 # Logging
 logback = "1.5.18"
