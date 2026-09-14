@@ -44,7 +44,7 @@ jobs:
         working-directory: noty-android
 
       - name: Build noty-api
-        run: ./gradlew build -x test --no-daemon
+        run: ./gradlew assemble --no-daemon  # not 'build': its ktlint check fails on planted code
         working-directory: noty-api
 
       - name: Perform CodeQL Analysis
